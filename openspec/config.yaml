@@ -1,32 +1,36 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context: shown to the AI whenever it writes an OpenSpec artifact.
+# Kept short on purpose; CLAUDE.md holds the full rules so they don't drift.
+context: |
+  Portfolio project run as a mock discovery engagement for a fictional B2B
+  software company. Audience: a forward deployed / solutions reviewer, so
+  every change should read as both sound engineering and a clear business step.
+  CLAUDE.md is the source of truth for hard rules, design decisions and conventions.
+  Stack: Python 3.11+, pandas, numpy, pytest. All data synthetic. Fixed random seed.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+# Per-artifact rules: requirements each document type must meet.
+rules:
+  proposal:
+    - Keep under 400 words
+    - State the roadmap phase and which part of the problem statement this addresses
+    - Name who benefits (product ops, owners, feedback providers) and how
+    - Define a measurable success criterion
+    - Include a "Non-goals" section
+    - Flag any new dependency explicitly; it needs approval before apply
+  design:
+    - Record each key decision with the alternative considered and why it was rejected
+    - List every assumption; any number must live in generator/config.py, not in code
+    - Include a "Known limitations" section
+    - Include a short "In a real deployment" note (data access, integrations, privacy, who to interview)
+  tasks:
+    - Keep tasks small enough to explain line by line
+    - Include pytest tests for key behaviour (e.g. same seed gives identical data)
+    - End with a task to update the README memo if findings or approach changed
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+# Per-operation guidance: how implementation work is conducted.
+operations:
+  apply:
+    guidance:
+      - After each task, explain what changed and why
+      - Run the tests before marking a task done
