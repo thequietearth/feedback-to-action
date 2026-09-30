@@ -1,0 +1,69 @@
+#!/bin/sh
+# Pre-commit check: stop secrets and personal details from reaching GitHub.
+#
+# Git runs this automatically before every commit, once enabled with:
+#   git config core.hooksPath .githooks
+# If anything below matches, the commit is blocked and nothing is saved.
+#
+# It is pattern-based: it catches common key formats and known personal
+# details, not every possible secret. Still read diffs before pushing.
+
+fail=0
+self=".githooks/pre-commit"
+
+# Search every staged (about-to-be-committed) file for a regex pattern.
+# Prints file:line for each hit but truncates the line, so a full secret is
+# not echoed to the terminal.
+search() {
+  git grep --cached -I -n -i -E -e "$1" -- . ":!$self" | cut -c1-100
+}
+
+report() {
+  if [ -n "$2" ]; then
+    echo "BLOCKED - possible $1:"
+    printf '%s\n' "$2" | sed 's/^/    /'
+    fail=1
+  fi
+}
+
+# 1. Files that should never be committed, whatever they contain.
+files=$(git diff --cached --name-only --diff-filter=ACMR \
+  | grep -E '(^|/)(\.env(\..+)?|[^/]*\.pem|[^/]*\.key|id_rsa[^/]*|secrets\.toml)$' \
+  | grep -vE '(^|/)\.env\.example$')
+report "secret file (remove with: git restore --staged <file>)" "$files"
+
+# 2. Known API key and token formats.
+report "Anthropic API key" "$(search 'sk-ant-[a-z0-9_-]{20,}')"
+report "OpenAI API key"    "$(search 'sk-(proj-)?[a-z0-9]{20,}')"
+report "AWS access key"    "$(search 'akia[0-9a-z]{16}')"
+report "GitHub token"      "$(search '(gh[pousr]_[a-z0-9]{30,}|github_pat_[a-z0-9_]{20,})')"
+report "Google API key"    "$(search 'aiza[0-9a-z_-]{35}')"
+report "Slack token"       "$(search 'xox[baprs]-[a-z0-9-]{10,}')"
+report "private key"       "$(search '-----begin [a-z ]*private key-----')"
+
+# 3. Hard-coded credentials such as: api_key = "abc123..."
+report "hard-coded credential" \
+  "$(search '(api[_-]?key|secret|token|password|passwd)[[:space:]]*[:=][[:space:]]*["'\''][^"'\'' ]{12,}["'\'']')"
+
+# 4. Your real name and email, read from your global git config at run time,
+#    so they never have to be written into this file.
+real_name=$(git config --global user.name)
+real_email=$(git config --global user.email)
+if [ -n "$real_name" ]; then
+  report "real name" "$(git grep --cached -I -n -i -F -e "$real_name" -- . ":!$self" | cut -c1-100)"
+fi
+if [ -n "$real_email" ]; then
+  report "personal email" "$(git grep --cached -I -n -i -F -e "$real_email" -- . ":!$self" | cut -c1-100)"
+fi
+
+# 5. Any other email address (synthetic data should not contain real-looking
+#    emails). GitHub noreply, Anthropic noreply and example domains are allowed.
+report "email address" "$(search '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}' \
+  | grep -viE '@(users\.noreply\.github\.com|anthropic\.com|example\.(com|org|net))')"
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "Commit blocked. Remove the items above, re-stage, and commit again."
+  exit 1
+fi
+exit 0

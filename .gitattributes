@@ -1,0 +1,4 @@
+# Normalise line endings in the repo; shell scripts must stay LF or they fail to run.
+* text=auto
+.githooks/* text eol=lf
+*.sh text eol=lf

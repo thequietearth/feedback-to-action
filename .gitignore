@@ -1,0 +1,25 @@
+# Secrets: API keys live in .env and must never be committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code per-user settings (may hold local paths or permissions)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Streamlit local secrets
+.streamlit/secrets.toml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
