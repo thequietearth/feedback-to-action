@@ -38,5 +38,5 @@
 
 ## 7. Publish the dataset and memo
 
-- [ ] 7.1 Generate `data/event_log.csv` with default config and commit it; verify the pre-commit check passes and the file is under 5 MB
-- [ ] 7.2 Create `README.md` as a deployment memo (situation, approach, data so far, what's left out, next steps), covering Phase 1's assumptions, the switch and the known limitations; verify the documented commands run as written
+- [x] 7.1 Generate `data/event_log.csv` with default config and commit it; verify the pre-commit check passes and the file is under 5 MB
+- [x] 7.2 Create `README.md` as a deployment memo (situation, approach, data so far, what's left out, next steps), covering Phase 1's assumptions, the switch and the known limitations; verify the documented commands run as written
