@@ -69,7 +69,7 @@ Timestamps stay within working hours (Singapore time), spread across the day.
 
 ## Roadmap
 
-- [ ] Phase 1: Synthetic data generator (adapt the freight generator's structure:
+- [x] Phase 1: Synthetic data generator (adapt the freight generator's structure:
       config.py for assumptions, generate.py for case simulation, fixed seed)
 - [ ] Phase 2: Discovery app (Streamlit): data quality, process map (pm4py),
       where items stall, cost of chasing, does detail level predict delay?
@@ -77,8 +77,21 @@ Timestamps stay within working hours (Singapore time), spread across the day.
       exec brief
 - [ ] Phase 4: Prototype agent: intake clarity check, confident routing,
       follow-through (nudges, digests), no auto-escalation
+      - First: synthetic feedback text per case, built from templates in code
+        (seeded, offline), saved to `data/feedback_items.csv`. Its true product
+        area and detail level are the answer key. The event log stays metadata only.
+      - Jev makes three narrow judgements: intake clarity (Score + Nouls for
+        missing details), routing (Choice over product areas) and duplicate
+        check (same issue as a recent item?). A generative LLM writes text.
+      - Confidence gates every action: >0.9 act, 0.5-0.9 suggest to product
+        ops, <0.5 hand to a human. Escalation stays human whatever the score.
+      - `typesafe-sdk` needs approval; `TYPESAFE_API_KEY` lives in `.env`.
 - [ ] Phase 5: Evaluation: replay items, measure time to resolution, human
       chases, wrong routings
+      - Measure Jev's accuracy against the answer key and its calibration
+        (is it right ~90% of the time when confidence is 0.9?).
+      - Note: template text is more uniform than real feedback, so accuracy
+        here is an upper bound.
 
 ## Out of scope
 
