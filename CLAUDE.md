@@ -71,7 +71,7 @@ Timestamps stay within working hours (Singapore time), spread across the day.
 
 - [x] Phase 1: Synthetic data generator (adapt the freight generator's structure:
       config.py for assumptions, generate.py for case simulation, fixed seed)
-- [ ] Phase 2: Discovery app (Streamlit): data quality, process map,
+- [x] Phase 2: Discovery app (Streamlit): data quality, process map,
       where items stall, cost of chasing, does detail level predict delay?
       - Process map is built in pandas, not pm4py: pm4py is AGPL-3.0 (many
         client legal teams block it), adds ~15 packages, and we only need a
