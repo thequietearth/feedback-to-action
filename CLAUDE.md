@@ -71,8 +71,13 @@ Timestamps stay within working hours (Singapore time), spread across the day.
 
 - [x] Phase 1: Synthetic data generator (adapt the freight generator's structure:
       config.py for assumptions, generate.py for case simulation, fixed seed)
-- [ ] Phase 2: Discovery app (Streamlit): data quality, process map (pm4py),
+- [ ] Phase 2: Discovery app (Streamlit): data quality, process map,
       where items stall, cost of chasing, does detail level predict delay?
+      - Process map is built in pandas, not pm4py: pm4py is AGPL-3.0 (many
+        client legal teams block it), adds ~15 packages, and we only need a
+        directly-follows graph.
+      - Analysis assumptions live in `app/settings.py` (separate from the
+        generator, so the app can read a real export in the same schema).
 - [ ] Phase 3: Business case: value x feasibility scoring, Monte Carlo ROI,
       exec brief
 - [ ] Phase 4: Prototype agent: intake clarity check, confident routing,
@@ -100,8 +105,8 @@ upload formats, UI polish beyond clean defaults.
 
 ## Conventions
 
-- Python 3.11+, pandas, numpy. Small functions, type hints, docstrings on
-  anything non-obvious.
+- Python 3.11+, pandas, numpy, Streamlit, pytest. Small functions, type hints,
+  docstrings on anything non-obvious.
 - Reproducible: fixed random seed; same config gives the same data.
 - README is written as a deployment memo: situation, approach, findings, what was
   left out, what I'd do next.
@@ -111,4 +116,6 @@ upload formats, UI polish beyond clean defaults.
 ```bash
 pip install -r requirements.txt
 python generator/generate.py      # writes data/event_log.csv
+streamlit run app/streamlit_app.py  # discovery readout
+pytest                            # all tests
 ```
