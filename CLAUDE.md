@@ -80,6 +80,16 @@ Timestamps stay within working hours (Singapore time), spread across the day.
         generator, so the app can read a real export in the same schema).
 - [ ] Phase 3: Business case: value x feasibility scoring, Monte Carlo ROI,
       exec brief
+      - Compares AI intake check, structured intake form (no AI) and owner
+        follow-through. ROI counts product ops hours saved only; rescued items
+        and avoided nudges are reported as counts. Simple 3-year ROI + payback.
+      - One `evaluate()` function does all the money arithmetic; the
+        simulation, sensitivity view and tests all call it.
+      - Ranges, costs and feasibility scores (with reasons) live in
+        `business_case/assumptions.py`; the hourly rate comes from `app/settings.py`.
+      - `docs/exec_brief.md` is generated; a test fails if it is stale.
+      - Result at starting assumptions: follow-through first, form as quick
+        win; the AI check does not pay back on hours alone (13% chance).
 - [ ] Phase 4: Prototype agent: intake clarity check, confident routing,
       follow-through (nudges, digests), no auto-escalation
       - First: synthetic feedback text per case, built from templates in code
@@ -116,6 +126,7 @@ upload formats, UI polish beyond clean defaults.
 ```bash
 pip install -r requirements.txt
 python generator/generate.py      # writes data/event_log.csv
-streamlit run app/streamlit_app.py  # discovery readout
+streamlit run app/streamlit_app.py  # discovery readout + business case page
+python business_case/brief.py     # regenerates docs/exec_brief.md
 pytest                            # all tests
 ```

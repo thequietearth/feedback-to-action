@@ -16,8 +16,8 @@ The engagement runs in five phases:
 |---|---|---|
 | 1. Synthetic event log | What would the ticket history look like? | **Done** |
 | 2. Discovery app | Where do items stall, and what does chasing cost? | **Done** |
-| 3. Business case | Which fix is worth funding, and what's the ROI range? | Next |
-| 4. Prototype agent | Can an agent check intake clarity, route confidently and follow through, without escalating on its own? | Planned |
+| 3. Business case | Which fix is worth funding, and what's the ROI range? | **Done** |
+| 4. Prototype agent | Can an agent check intake clarity, route confidently and follow through, without escalating on its own? | Next |
 | 5. Evaluation | Does the agent reduce time to resolution, chases and misroutes? | Planned |
 
 Each phase is planned as an [OpenSpec](https://github.com/Fission-AI/OpenSpec) change (proposal, spec, design, tasks) under `openspec/`, so the reasoning behind every decision is recorded next to the code.
@@ -31,9 +31,12 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1          # Windows PowerShell; macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 python generator/generate.py        # writes data/event_log.csv
-streamlit run app/streamlit_app.py  # opens the discovery readout in your browser
-pytest                              # 83 tests
+streamlit run app/streamlit_app.py  # opens the readout; the business case is a second page
+python business_case/brief.py       # regenerates docs/exec_brief.md
+pytest                              # 110 tests
 ```
+
+If PowerShell refuses to run the activation script, skip it and call the environment's Python directly, e.g. `.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py`.
 
 **What each item goes through:** submission → triage → clarification loops if the item is vague → merged as a duplicate, or routed (sometimes to the wrong owner first) → owner acknowledgement, with product ops nudging every 3 working days of silence → in progress → resolved, won't do, or closed as stale.
 
@@ -70,6 +73,36 @@ The generator can switch the detail effect off. On that dataset, the readout rep
 
 The verdict uses intake delay (submission to routing) rather than time to resolution. Resolution time is shown as context: low-detail items take 1.3× as long to resolve, a smaller gap because owner waits dominate, and 311 open items have no resolution time at all.
 
+## Phase 3: the business case
+
+**[Read the one-page exec brief →](docs/exec_brief.md)**
+
+The readout pointed to two levers: vague feedback at intake and owner silence. The business case compares three ways to pull them against the measured baseline (about 1,040 product ops hours a year spent chasing):
+
+- **AI intake clarity check:** asks the provider for missing details at submission.
+- **Structured intake form (no AI):** mandatory fields. It's there to answer the question a client will ask: do we need AI at all?
+- **Owner follow-through:** digests and an ageing view instead of one-off nudges.
+
+Every uncertain input (effect size, build effort, engineer cost, maintenance, review time) is a range, not a number. A seeded Monte Carlo simulation runs each option 10,000 times. **The ROI counts product ops hours saved only**; rescued items and avoided nudges are reported as counts without a dollar value, because pricing them would rest on assumptions finance would rightly challenge.
+
+### Findings
+
+| Option | 3-year net (median) | Chance ROI > 0 | Payback |
+|---|---|---|---|
+| Owner follow-through | SGD 31k | 100% | ~13 months |
+| Structured intake form | SGD 11k | 100% | ~12 months, and the cheapest build |
+| AI intake clarity check | −SGD 11k | 13% | ~68 months |
+
+**Recommendation:** fund owner follow-through first, and run the intake form alongside it, because they target different work. **The AI intake check does not pay back on hours saved alone.** Its case rests on outcomes the ROI doesn't count: about 111 lost items rescued a year and faster intake. Phase 4 prototypes it and Phase 5 tests whether those outcomes are real before anyone funds a full build.
+
+That result goes against the AI option this project is about to prototype. That's deliberate: the model has to be able to say no, and the assumptions are visible enough for anyone to argue with. The app's "Business case" page has sliders for the hourly rate, engineer cost and each option's effect, and the sensitivity view shows the AI option's result swings most with build effort.
+
+### Choices worth knowing
+
+- **One function does all the money arithmetic.** The simulation, the sensitivity view and the tests all call `evaluate()`. A test collapses every range to a single value and checks the simulation matches the hand calculation exactly.
+- **The brief is generated, and a test fails if it is stale.** Change an assumption without regenerating, and the build breaks rather than a number drifting.
+- **The value axis is fixed,** not rescaled per option, so the weakest option isn't automatically drawn at zero.
+
 ## What was left out
 
 - **The owners' side.** We model only the chaser's view. Owners' competing priorities and workload aren't simulated, and in a real engagement they'd be the first people to interview.
@@ -78,9 +111,10 @@ The verdict uses intake delay (submission to routing) rather than time to resolu
 - **Feedback text.** The log holds metadata only. That also matches how we'd handle customer data in a real deployment.
 - **Process-mining libraries.** The process map is built in pandas rather than pm4py, which is licensed AGPL-3.0 (often blocked by client legal teams) and heavier than a directly-follows graph needs.
 - **Finer analysis.** The verdict compares low against high detail only, waits ignore public holidays, and the annual cost assumes steady volume.
+- **Business case scope.** Costs are estimates, not quotes; provider and owner time isn't counted; the ROI is undiscounted; options are compared, not combined; and the intake form's effect on submission volume isn't modelled.
 
 ## What I'd do next
 
-Phase 3: a business case. The readout points to two levers: catching vague feedback at intake (20% of waiting, 108 lost items, 175 hours of clarification requests in 25 weeks) and reducing owner silence (the nudge-after-nudge stall). Phase 3 scores each on value and feasibility and puts an ROI range on them with Monte Carlo simulation.
+Phase 4: prototype the agent. The business case shapes its priorities: owner follow-through (digests, an ageing view, no auto-escalation) is the proven case, and the AI intake check is an experiment whose outcomes Phase 5 must measure, starting with items rescued and intake delay.
 
-In a real deployment, before any of that, I'd ask for a read-only, pseudonymised export from the ticketing tool. I'd present the readout live to the head of product ops, confirm the hourly cost with finance, and interview two or three owners about the waits charged to them, which is the view this analysis can't see.
+In a real deployment, I'd first get a read-only, pseudonymised export from the ticketing tool, present the readout and brief live to the head of product ops, replace assumed costs with engineering estimates, and run a short workshop to challenge the feasibility scores. Then I'd pilot the cheapest option and measure its real effect before funding the next.
