@@ -78,7 +78,7 @@ Timestamps stay within working hours (Singapore time), spread across the day.
         directly-follows graph.
       - Analysis assumptions live in `app/settings.py` (separate from the
         generator, so the app can read a real export in the same schema).
-- [ ] Phase 3: Business case: value x feasibility scoring, Monte Carlo ROI,
+- [x] Phase 3: Business case: value x feasibility scoring, Monte Carlo ROI,
       exec brief
       - Compares AI intake check, structured intake form (no AI) and owner
         follow-through. ROI counts product ops hours saved only; rescued items
@@ -92,7 +92,11 @@ Timestamps stay within working hours (Singapore time), spread across the day.
         win; the AI check does not pay back on hours alone (13% chance).
 - [ ] Phase 4: Prototype agent: intake clarity check, confident routing,
       follow-through (nudges, digests), no auto-escalation
-      - First: synthetic feedback text per case, built from templates in code
+      - Order (decided 2026-10-13, following the Phase 3 business case):
+        owner follow-through first, as the proven win; then the AI intake
+        check as an experiment, built to test the outcomes its ROI doesn't
+        count (rescued items, intake delay), which Phase 5 measures.
+      - Before the intake check: synthetic feedback text per case, built from templates in code
         (seeded, offline), saved to `data/feedback_items.csv`. Its true product
         area and detail level are the answer key. The event log stays metadata only.
       - Jev makes three narrow judgements: intake clarity (Score + Nouls for
